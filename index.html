@@ -1,64 +1,96 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101827"><title>ChacingX</title>
-<style>
-:root{color-scheme:dark;--bg:#0b1220;--panel:#111c2e;--text:#f5f7fb;--muted:#aab7cc;--line:#2a3952;--blue:#5b8cff;--cyan:#5be1d0}
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,Arial,sans-serif;background:radial-gradient(ellipse at top right,#1a3150 0,transparent 42%),var(--bg);color:var(--text);min-height:100vh}
-.wrap{max-width:760px;margin:auto;padding:24px 16px 36px}.brand{display:flex;align-items:center;gap:12px;margin:12px 0 32px}.logo{width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,var(--blue),var(--cyan));display:grid;place-items:center;color:#081321;font-weight:900;font-size:22px}.brand h1{font-size:20px;margin:0}.brand p{margin:4px 0 0;color:var(--muted);font-size:12px;letter-spacing:1.6px;text-transform:uppercase}
-.eyebrow{color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase}.hero h2{font-size:clamp(30px,7vw,46px);line-height:1.08;margin:10px 0 12px}.hero h2 span{color:var(--cyan)}.hero p{color:var(--muted);line-height:1.6}
-.card{background:linear-gradient(180deg,#142138,#101a2b);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 20px 50px #0003;margin-top:22px}label{display:block;font-size:13px;font-weight:700;margin:0 0 9px}
-.carriers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.carrier{border:1px solid var(--line);background:#0d1728;color:var(--muted);border-radius:13px;padding:13px;text-align:left;cursor:pointer;font:inherit;min-height:52px}.carrier.active{border-color:var(--cyan);background:#12313b;color:white}
-.inputrow{display:flex;gap:10px}.inputrow input{min-width:0;flex:1;background:#0a1424;color:white;border:1px solid var(--line);border-radius:13px;padding:15px 14px;font:inherit}.primary{border:0;border-radius:13px;padding:0 18px;background:linear-gradient(135deg,var(--blue),#6bafff);color:#071426;font-weight:800;font:inherit;cursor:pointer;min-height:52px}.hint{color:var(--muted);font-size:12px;line-height:1.5}.message{display:none;margin-top:16px;padding:13px;border:1px solid #3b5675;background:#102238;border-radius:12px;font-size:13px;line-height:1.5}.message.show{display:block}
-footer{text-align:center;color:#7f8da5;font-size:12px;padding:24px 0;line-height:1.6}
-@media(max-width:520px){.card{padding:17px}.inputrow{flex-direction:column}.primary{width:100%}}
-</style></head>
-<body><main class="wrap">
-<header class="brand"><div class="logo">CX</div><div><h1>ChacingX</h1><p>Shipment tracker</p></div></header>
-<section class="hero"><div class="eyebrow">ChacingX Web</div><h2>Data resi <span>ChacingX</span></h2><p>Halaman awal website ChacingX. Setelah APK dihubungkan ke Firebase Database, daftar resi hasil scan dapat ditampilkan di sini.</p></section>
-<section class="card"><label>Status website</label><p>Hosting berhasil disiapkan jika halaman ini sudah tampil melalui alamat Firebase kamu.</p><p class="hint">Versi ini belum menerima data scan dari APK. Integrasi database perlu ditambahkan pada langkah berikutnya.</p></section>
-<footer>© <span id="year"></span> ChacingX</footer></main>
-<script>document.getElementById('year').textContent=new Date().getFullYear();</script>import { initializeApp } from "firebase/app";
-import { getFirestore, collection, onSnapshot, query, orderBy } from "firebase/firestore";
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChacingX Shipment Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #0b132b;
+            color: #ffffff;
+            padding: 20px;
+        }
+        h1 {
+            color: #00f5d4;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #1c2541;
+        }
+        th, td {
+            border: 1px solid #48cae4;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #4cc9f0;
+            color: #0b132b;
+        }
+    </style>
+</head>
+<body>
 
-// Konfigurasi Firebase Project ChacingX Anda
-const firebaseConfig = {
-  apiKey: "MASUKKAN_API_KEY_ANDA",
-  authDomain: "chacingx-1cdb0.firebaseapp.com",
-  projectId: "ChacingX",
-  storageBucket: "chacingx-1cdb0.appspot.com",
-  messagingSenderId: "ID_ANDA",
-  appId: "ID_APLIKASI_ANDA"
-};
+    <h1>Data Resi ChacingX</h1>
+    <p>Daftar resi hasil scan dari APK tim gudang secara real-time:</p>
 
-// Inisialisasi Firebase & Firestore
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    <!-- Wadah untuk tabel resi -->
+    <div id="tabel-resi">
+        <p>Memuat data resi dari database...</p>
+    </div>
 
-// Ambil data resi secara real-time
-const q = query(collection(db, "data_resi"), orderBy("waktu_scan", "desc"));
+    <!-- SCRIPT FIREBASE (HARUS DI DALAM TAG INI AGAR BERFUNGSI) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-onSnapshot(q, (snapshot) => {
-  let htmlContent = "";
-  
-  if (snapshot.empty) {
-    htmlContent = `<p>Belum ada resi yang di-scan.</p>`;
-  } else {
-    htmlContent = `<table border="1" style="width:100%; border-collapse: collapse; margin-top: 10px;">
-                    <tr><th>No. Resi</th><th>Waktu</th><th>Status</th></tr>`;
-    snapshot.forEach((doc) => {
-      let data = doc.data();
-      htmlContent += `<tr>
-                        <td>${data.resi || '-'}</td>
-                        <td>${data.waktu_scan ? new Date(data.waktu_scan.toDate()).toLocaleString() : '-'}</td>
-                        <td>${data.status || 'Masuk Gudang'}</td>
-                      </tr>`;
-    });
-    htmlContent += `</table>`;
-  }
+        // Konfigurasi Firebase Project ChacingX Anda
+        const firebaseConfig = {
+          apiKey: "MASUKKAN_API_KEY_ANDA",
+          authDomain: "chacingx-1cdb0.firebaseapp.com",
+          projectId: "ChacingX",
+          storageBucket: "chacingx-1cdb0.appspot.com",
+          messagingSenderId: "ID_ANDA",
+          appId: "ID_APLIKASI_ANDA"
+        };
 
-  // Tampilkan ke elemen HTML di website Anda (misal div dengan id="tabel-resi")
-  document.getElementById("tabel-resi").innerHTML = htmlContent;
-});
-</body></html>
+        // Inisialisasi Firebase & Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Ambil data resi secara real-time dari collection 'data_resi'
+        const q = query(collection(db, "data_resi"), orderBy("waktu_scan", "desc"));
+
+        onSnapshot(q, (snapshot) => {
+          let htmlContent = "";
+          
+          if (snapshot.empty) {
+            htmlContent = `<p>Belum ada resi yang di-scan.</p>`;
+          } else {
+            htmlContent = `<table>
+                            <tr>
+                              <th>No. Resi</th>
+                              <th>Waktu</th>
+                              <th>Status</th>
+                            </tr>`;
+            snapshot.forEach((doc) => {
+              let data = doc.data();
+              let waktuFormat = data.waktu_scan ? new Date(data.waktu_scan.toDate()).toLocaleString() : '-';
+              htmlContent += `<tr>
+                                <td>${data.resi || '-'}</td>
+                                <td>${waktuFormat}</td>
+                                <td>${data.status || 'Masuk Gudang'}</td>
+                              </tr>`;
+            });
+            htmlContent += `</table>`;
+          }
+
+          // Masukkan ke elemen dengan id="tabel-resi"
+          document.getElementById("tabel-resi").innerHTML = htmlContent;
+        });
+    </script>
+
+</body>
+</html>
