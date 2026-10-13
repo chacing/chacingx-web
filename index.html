@@ -19,4 +19,46 @@ footer{text-align:center;color:#7f8da5;font-size:12px;padding:24px 0;line-height
 <section class="hero"><div class="eyebrow">ChacingX Web</div><h2>Data resi <span>ChacingX</span></h2><p>Halaman awal website ChacingX. Setelah APK dihubungkan ke Firebase Database, daftar resi hasil scan dapat ditampilkan di sini.</p></section>
 <section class="card"><label>Status website</label><p>Hosting berhasil disiapkan jika halaman ini sudah tampil melalui alamat Firebase kamu.</p><p class="hint">Versi ini belum menerima data scan dari APK. Integrasi database perlu ditambahkan pada langkah berikutnya.</p></section>
 <footer>© <span id="year"></span> ChacingX</footer></main>
-<script>document.getElementById('year').textContent=new Date().getFullYear();</script></body></html>
+<script>document.getElementById('year').textContent=new Date().getFullYear();</script>import { initializeApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, query, orderBy } from "firebase/firestore";
+
+// Konfigurasi Firebase Project ChacingX Anda
+const firebaseConfig = {
+  apiKey: "MASUKKAN_API_KEY_ANDA",
+  authDomain: "chacingx-1cdb0.firebaseapp.com",
+  projectId: "ChacingX",
+  storageBucket: "chacingx-1cdb0.appspot.com",
+  messagingSenderId: "ID_ANDA",
+  appId: "ID_APLIKASI_ANDA"
+};
+
+// Inisialisasi Firebase & Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Ambil data resi secara real-time
+const q = query(collection(db, "data_resi"), orderBy("waktu_scan", "desc"));
+
+onSnapshot(q, (snapshot) => {
+  let htmlContent = "";
+  
+  if (snapshot.empty) {
+    htmlContent = `<p>Belum ada resi yang di-scan.</p>`;
+  } else {
+    htmlContent = `<table border="1" style="width:100%; border-collapse: collapse; margin-top: 10px;">
+                    <tr><th>No. Resi</th><th>Waktu</th><th>Status</th></tr>`;
+    snapshot.forEach((doc) => {
+      let data = doc.data();
+      htmlContent += `<tr>
+                        <td>${data.resi || '-'}</td>
+                        <td>${data.waktu_scan ? new Date(data.waktu_scan.toDate()).toLocaleString() : '-'}</td>
+                        <td>${data.status || 'Masuk Gudang'}</td>
+                      </tr>`;
+    });
+    htmlContent += `</table>`;
+  }
+
+  // Tampilkan ke elemen HTML di website Anda (misal div dengan id="tabel-resi")
+  document.getElementById("tabel-resi").innerHTML = htmlContent;
+});
+</body></html>
